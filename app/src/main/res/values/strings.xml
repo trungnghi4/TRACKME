@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">TrackMe</string>
+    <string name="google_maps_key">AIzaSyBN0-rzCge_etnqsBiQrsQOxuVdps-bA6M</string>
+    <string name="distance">Distance</string>
+    <string name="avg_speed">Avg. Speed</string>
+    <string name="record">Record</string>
 </resources>
