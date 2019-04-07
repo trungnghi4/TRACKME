@@ -1,80 +1,19 @@
 package com.example.admin.trackme.views;
 
-//import android.Manifest;
-//import android.content.pm.PackageManager;
-//import android.location.Location;
-//import android.os.Bundle;
-//import android.support.v4.app.ActivityCompat;
-//import android.support.v4.content.ContextCompat;
-//import android.support.v7.app.AppCompatActivity;
-//import android.widget.TextView;
-//
-//import com.example.admin.trackme.R;
-//import com.example.admin.trackme.model.LocationCapturerImpl;
-//import com.example.admin.trackme.model.LocationCapturerListener;
-//
-//public class TestActivity extends AppCompatActivity {
-//
-//    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-//    private TextView textviewLocation;
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_test);
-//
-//        //Verifying ACCESS_FINE_LOCATION permission. If negative, requesting the permission.
-//        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-//        if(permissionCheck != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(
-//                    this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-//        } else {
-//            startLocationCapturer();
-//        }
-//
-//        textviewLocation = (TextView) findViewById(R.id.textview_location);
-//    }
-//
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-//        switch (requestCode) {
-//            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    startLocationCapturer();
-//                }
-//            }
-//        }
-//    }
-//
-//    private void startLocationCapturer() {
-//        LocationCapturerImpl locationCapturerImpl = new LocationCapturerImpl(this);
-//        locationCapturerImpl.setLocationCapturerListener(new LocationCapturerListener() {
-//
-//            @Override
-//            public void connectionFailed(String errorMessage) {
-//                textviewLocation.setText(errorMessage);
-//            }
-//
-//            @Override
-//            public void onLocationCaptured(double latitude, double longitude) {
-//                textviewLocation.setText(latitude + " " + longitude);
-//
-//            }
-//        });
-//        locationCapturerImpl.startToCaptureLocations();
-//    }
-//}
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -110,7 +49,17 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        locationTv = findViewById(R.id.location);
+        //locationTv = findViewById(R.id.location);
+
+        FloatingActionButton fab = findViewById(R.id.fabRecord);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this,TrackingActivity.class);
+                startActivity(intent);
+
+            }
+        });
         // we add permissions we need to request location of the users
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -164,9 +113,9 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        if (!checkPlayServices()) {
-            locationTv.setText("You need to install Google Play Services to use the App properly");
-        }
+//        if (!checkPlayServices()) {
+//            locationTv.setText("You need to install Google Play Services to use the App properly");
+//        }
     }
 
     @Override
@@ -174,10 +123,10 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
 
         // stop location updates
-        if (googleApiClient != null  &&  googleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
-            googleApiClient.disconnect();
-        }
+//        if (googleApiClient != null  &&  googleApiClient.isConnected()) {
+//            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+//            googleApiClient.disconnect();
+//        }
     }
 
     private boolean checkPlayServices() {
@@ -209,9 +158,9 @@ public class MainActivity extends AppCompatActivity
         // Permissions ok, we get last location
         location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
-        if (location != null) {
-            locationTv.setText("Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude());
-        }
+//        if (location != null) {
+//            locationTv.setText("Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude());
+//        }
 
         startLocationUpdates();
     }
@@ -242,9 +191,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        if (location != null) {
-            locationTv.setText("Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude());
-        }
+//        if (location != null) {
+//            locationTv.setText("Latitude : " + location.getLatitude() + "\nLongitude : " + location.getLongitude());
+//        }
     }
 
     @Override

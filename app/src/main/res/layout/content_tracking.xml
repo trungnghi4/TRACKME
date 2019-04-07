@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <!--<data>-->
+
+        <!--<variable-->
+            <!--name=""-->
+            <!--type="" />-->
+    <!--</data>-->
+
+    <android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/item_pad">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_marginBottom="@dimen/map_margin_bottom"
+        app:layout_constraintBottom_toTopOf="@+id/tvDistance"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:context="com.example.admin.trackme.views.Map" />
+        <!--<com.google.android.gms.maps.MapView-->
+            <!--android:id="@+id/mapView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="300dp"-->
+            <!--android:layout_marginBottom="@dimen/map_margin_bottom"-->
+            <!--app:layout_constraintBottom_toTopOf="@+id/tvDistance"-->
+            <!--app:layout_constraintTop_toTopOf="parent"/>-->
+            <!--app:liteMode="false"-->
+            <!--app:mapType="normal" -->
+
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_pad"
+            app:layout_constraintBottom_toTopOf="@+id/tvDistanceTitle"
+            app:layout_constraintEnd_toStartOf="@+id/guideline1"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="11 km" />
+
+    <TextView
+        android:id="@+id/tvDistanceTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/item_pad"
+        android:text="@string/distance"
+        app:layout_constraintEnd_toStartOf="@+id/guideline1"
+        app:layout_constraintHorizontal_bias="0.262"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvDistance" />
+
+
+        <android.support.constraint.Guideline
+            android:id="@+id/guideline1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.3" />
+
+        <TextView
+            android:id="@+id/tvSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_pad"
+            app:layout_constraintBottom_toTopOf="@+id/tvSpeedTitle"
+            app:layout_constraintEnd_toStartOf="@+id/guideline2"
+            app:layout_constraintStart_toEndOf="@id/guideline1"
+            tools:text="11 km/h" />
+
+    <TextView
+        android:id="@+id/tvSpeedTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="14dp"
+        android:text="@string/speed"
+        app:layout_constraintEnd_toStartOf="@+id/guideline1"
+        app:layout_constraintTop_toBottomOf="@+id/tvDistance" />
+
+        <android.support.constraint.Guideline
+            android:id="@+id/guideline2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.7" />
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_pad"
+            app:layout_constraintBottom_toTopOf="@+id/layoutBottom"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/guideline2"
+            tools:text="10:10:20" />
+
+
+        <LinearLayout
+            android:id="@+id/layoutBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnPause"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_pause"
+                tools:ignore="ContentDescription" />
+
+            <ImageButton
+                android:id="@+id/btnReplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_replay"
+                tools:ignore="ContentDescription" />
+
+            <ImageButton
+                android:id="@+id/btnStop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_stop"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
+    </android.support.constraint.ConstraintLayout>

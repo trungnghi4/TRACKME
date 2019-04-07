@@ -1,7 +1,16 @@
 <resources>
+    <string name="google_maps_key">AIzaSyDwUJ-AOtmGvGemX3sy9sRTl7rS3LQEyEs</string>
+
     <string name="app_name">TrackMe</string>
-    <string name="google_maps_key">AIzaSyBN0-rzCge_etnqsBiQrsQOxuVdps-bA6M</string>
     <string name="distance">Distance</string>
     <string name="avg_speed">Avg. Speed</string>
     <string name="record">Record</string>
+    <string name="speed">Speed</string>
+
+    <string name="location_running">Location is running</string>
+    <string name="msg_location_permission">App needs to access your device location to track your work out</string>
+    <string name="msg_location_permission_disable">Please go to setting and accept location permission before using app</string>
+    <string name="msg_gps_disable">GPS is disable, please turn it on before tracking</string>
+    <string name="distance_text">%.2f km</string>
+    <string name="speed_text">%.1f km/h</string>
 </resources>
