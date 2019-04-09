@@ -4,12 +4,13 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -17,13 +18,13 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
-import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.admin.trackme.Data.DatabaseHandler;
 import com.example.admin.trackme.R;
+import com.example.admin.trackme.model.Session;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -41,7 +42,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.text.DecimalFormat;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -52,7 +53,7 @@ public class TrackingActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener{
-
+    static DatabaseHandler dbHandler;
     private Polyline gpsTrack;
     private GoogleApiClient googleApiClient;
     private LatLng lastKnownLatLng;
@@ -82,6 +83,7 @@ public class TrackingActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tracking);
+        dbHandler = new DatabaseHandler(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -135,6 +137,18 @@ public class TrackingActivity extends AppCompatActivity implements
                 isRunning = true;
             }
         });
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Session session = createSession();
+                if(session!=null) {
+                    dbHandler.addSession(session);
+                }
+                Intent mainActivity = new Intent(TrackingActivity.this,MainActivity.class);
+                startActivity(mainActivity);
+                finish();
+            }
+        });
 
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
@@ -144,6 +158,33 @@ public class TrackingActivity extends AppCompatActivity implements
                     .build();
         }
     }
+
+    public Session createSession(){
+        Session tempSS = new Session();
+        String distance = tvDistance.getText().toString();
+        String avgSpeed = AverageSpeed(listSpeed).toString();
+        String time = tvTime.getText().toString();
+        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+            @Override
+            public void onSnapshotReady(Bitmap bitmap) {
+                ImageView snapshotView = (ImageView) findViewById(R.id.imageTemp);
+                snapshotView.setImageBitmap(bitmap);
+                Bitmap bmMap = ((BitmapDrawable)snapshotView.getDrawable()).getBitmap();
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                Session session1 = new Session();
+                session1.setImage(stream.toByteArray());
+                //get Image
+                //ByteArrayInputStream bis = new ByteArrayInputStream(imageInByte);
+            }
+        };
+
+        mGoogleMap.snapshot(callback);
+
+        Session session = new Session(distance,avgSpeed,time,tempSS.getImage());
+        return session;
+    }
+
     public static void setDate(TextView receiver,Date date,Date now) {
         if (date != null) {
             try {
@@ -192,12 +233,6 @@ public class TrackingActivity extends AppCompatActivity implements
                 long temp = -(now.getTime()-endTime.getTime());
                 TrackingActivity.setDate(tvTime, TrackingActivity.this.startTime,now);
                 myHandler.postDelayed(updateTimerMethod, 0);
-//                TrackingActivity.setDateRange(tvTime, TrackingActivity.this.startTime,TrackingActivity.this.endTime);
-//                myHandler.postDelayed(updateTimerMethod, 1000L);
-//                TrackingActivity.setDate(tvTime, TrackingActivity.this.startTime);
-//                Date now = new Date();
-//                long temp = -(now.getTime() - TrackingActivity.this.endTime.getTime());
-//                myHandler.postDelayed(updateTimerMethod, temp);
             }
         }
 
@@ -328,10 +363,10 @@ public class TrackingActivity extends AppCompatActivity implements
 //
 
     }
-    private Float AverageSpeed(ArrayList<Float> arrayListSpeed){
+    private Float AverageSpeed(List<Float> listSpeed){
         float sum = 0;
-        for(float speed:arrayListSpeed)sum+=speed;
-        return (sum/arrayListSpeed.size());
+        for(float speed:listSpeed)sum+=speed;
+        return (sum/listSpeed.size());
     }
 
 

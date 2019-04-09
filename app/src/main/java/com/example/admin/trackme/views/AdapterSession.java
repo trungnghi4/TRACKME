@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.admin.trackme.R;
+import com.example.admin.trackme.model.Session;
 
 import java.util.List;
 
@@ -36,9 +37,9 @@ public class AdapterSession extends RecyclerView.Adapter<AdapterSession.Recycler
     public void onBindViewHolder(final RecyclerViewHolder holder, int position) {
         Session session = dataSession.get(position);
 
-        holder.distance.setText((int) session.getDistance());
-        holder.avgSpeed.setText((int) session.getAverageSpeed());
-        holder.time.setText((int) (session.getEndTime()-session.getStartTime()));
+        holder.distance.setText(session.getDistance());
+        holder.avgSpeed.setText(session.getAverageSpeed());
+        holder.time.setText((session.getTime()));
         Bitmap bmMap = BitmapFactory.decodeByteArray(session.getImage(),0,session.getImage().length);
         holder.imageMapView.setImageBitmap(bmMap);
     }

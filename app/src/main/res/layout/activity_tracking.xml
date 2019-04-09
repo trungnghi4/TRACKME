@@ -14,4 +14,8 @@
         <include
             android:id="@+id/layoutTracking"
             layout="@layout/content_tracking"/>
+        <ImageView android:layout_height="0px"
+            android:layout_width="0px"
+            android:id="@+id/imageTemp"
+            android:contentDescription="TODO" />
     </android.support.design.widget.CoordinatorLayout>
