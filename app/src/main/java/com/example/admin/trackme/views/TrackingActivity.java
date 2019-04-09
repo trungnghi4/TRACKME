@@ -7,7 +7,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -15,6 +17,11 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Chronometer;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.admin.trackme.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -34,6 +41,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class TrackingActivity extends AppCompatActivity implements
@@ -53,6 +64,20 @@ public class TrackingActivity extends AppCompatActivity implements
     Marker mCurrLocationMarker;
     FusedLocationProviderClient mFusedLocationClient;
 
+    ImageView btnPause,btnStop,btnReplay;
+    TextView tvTime,tvDistance,tvSpeed;
+
+    private Date startTime;
+    private Date endTime;
+    private Handler myHandler = new Handler();
+    double distance =0;
+    List<Float> listSpeed = new ArrayList<Float>();
+    float speed;
+    static long sum_time;
+
+    boolean isRunning = true;
+    boolean isRecording = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +88,54 @@ public class TrackingActivity extends AppCompatActivity implements
         mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
         mapFrag.getMapAsync(this);
 
+        btnReplay = (ImageView) findViewById(R.id.btnReplay);
+        btnStop = (ImageView) findViewById(R.id.btnStop);
+        btnPause = (ImageView) findViewById(R.id.btnPause);
+
+        tvTime = (TextView) findViewById(R.id.tvTime);
+        tvSpeed = (TextView) findViewById(R.id.tvSpeed);
+        tvDistance = (TextView) findViewById(R.id.tvDistance);
+
+        if(startTime == null)
+        {
+            startTime = new Date();
+            this.runTimer();
+        }
+        //Count Time
+        //startTime = SystemClock.uptimeMillis();
+        //myHandler.postDelayed(updateTimerMethod, 0);
+        // Button
+
+
+        btnReplay.setVisibility(View.GONE);
+        btnStop.setVisibility(View.GONE);
+        btnPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                btnReplay.setVisibility(View.VISIBLE);
+                btnStop.setVisibility(View.VISIBLE);
+                btnPause.setVisibility(View.GONE);
+//                timeSwap += timeInMillies;
+                myHandler.removeCallbacks(updateTimerMethod);
+                endTime = new Date();
+                isRecording = false;
+                isRunning = false;
+
+            }
+        });
+        btnReplay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                btnReplay.setVisibility(View.GONE);
+                btnStop.setVisibility(View.GONE);
+                btnPause.setVisibility(View.VISIBLE);
+                //myHandler.post(replayTimerMethod);
+                myHandler.post(updateTimerMethod);
+                isRunning = true;
+            }
+        });
+
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -71,7 +144,79 @@ public class TrackingActivity extends AppCompatActivity implements
                     .build();
         }
     }
+    public static void setDate(TextView receiver,Date date,Date now) {
+        if (date != null) {
+            try {
+                long time_usage = now.getTime() - date.getTime();
+                sum_time = time_usage;
+                long seconds = time_usage / (long)1000 % (long)60;
+                long minutes = time_usage / (long)'\uea60' % (long)60;
+                long hours = time_usage / (long)3600000 % (long)23;
+                String format_time = "%02d:%02d:%02d";
+                Object[] objTime = new Object[]{hours, minutes, seconds};
+                String time = String.format(format_time, Arrays.copyOf(objTime, objTime.length));
+                receiver.setText((CharSequence)time);
+            } catch (Throwable e) {
+            }
 
+        }
+    }
+    public static void setDateRange(TextView receiver, Date start,Date end) {
+        if (start != null && end != null) {
+            try {
+                long time_usage = end.getTime() - start.getTime();
+                long seconds = time_usage / (long)1000 % (long)60;
+                long minutes = time_usage / (long)'\uea60' % (long)60;
+                long hours = time_usage / (long)3600000 % (long)23;
+                String format_time = "%02d:%02d:%02d";
+                Object[] objTime = new Object[]{hours, minutes, seconds};
+                String time = String.format(format_time, Arrays.copyOf(objTime, objTime.length));
+                receiver.setText((CharSequence)time);
+            } catch (Throwable e) {
+            }
+
+        }
+    }
+    private Runnable updateTimerMethod = new Runnable() {
+
+        public void run() {
+            TextView tvTime = (TextView) findViewById(R.id.tvTime);
+            if (isRecording) {
+                Date now = new Date();
+                TrackingActivity.setDate(tvTime, TrackingActivity.this.startTime,now);
+                myHandler.postDelayed(updateTimerMethod, 1000L);
+            }
+            else
+            {
+                Date now = endTime;
+                long temp = -(now.getTime()-endTime.getTime());
+                TrackingActivity.setDate(tvTime, TrackingActivity.this.startTime,now);
+                myHandler.postDelayed(updateTimerMethod, 0);
+//                TrackingActivity.setDateRange(tvTime, TrackingActivity.this.startTime,TrackingActivity.this.endTime);
+//                myHandler.postDelayed(updateTimerMethod, 1000L);
+//                TrackingActivity.setDate(tvTime, TrackingActivity.this.startTime);
+//                Date now = new Date();
+//                long temp = -(now.getTime() - TrackingActivity.this.endTime.getTime());
+//                myHandler.postDelayed(updateTimerMethod, temp);
+            }
+        }
+
+    };
+    private Runnable replayTimerMethod = new Runnable() {
+
+        public void run() {
+            TextView tvTime = (TextView) findViewById(R.id.tvTime);
+            TrackingActivity.setDateRange(tvTime, TrackingActivity.this.startTime,TrackingActivity.this.endTime);
+//            if (isRunning) {
+            myHandler.post(replayTimerMethod);
+        }
+
+    };
+    private void runTimer() {
+        //myHandler.post((Runnable)this.timerRunnable);
+        myHandler.post(updateTimerMethod);
+
+    }
     @Override
     public void onPause() {
         super.onPause();
@@ -81,6 +226,8 @@ public class TrackingActivity extends AppCompatActivity implements
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         }
     }
+
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -160,7 +307,44 @@ public class TrackingActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         lastKnownLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         updateTrack();
+
+        Location temp = mLastLocation;     //save the old location
+        mLastLocation = location;          //get the new location
+        distance = (mLastLocation.distanceTo(temp)/ 1000.00);   //find the distance
+
+        //calculating the speed with getSpeed method it returns speed in m/s so we are converting it into kmph
+        speed = location.getSpeed()*18/5;
+        listSpeed.add(speed);
+        updateUI();
     }
+    //The live feed of Distance and Speed are being set in the method below .
+    private void updateUI() {
+            String stringDistance = String.format ("%.3f", distance);
+            tvDistance.setText(stringDistance);
+//            avgSpeed = AverageSpeed(arrayListSpeed);
+//            speed = (float) (distance/(sum_time));
+            String stringAvgSpeed = String.format ("%.2f", speed);
+            tvSpeed.setText(stringAvgSpeed);
+//
+
+    }
+    private Float AverageSpeed(ArrayList<Float> arrayListSpeed){
+        float sum = 0;
+        for(float speed:arrayListSpeed)sum+=speed;
+        return (sum/arrayListSpeed.size());
+    }
+
+
+//    @Override
+//    public boolean onUnbind(Intent intent) {
+//        stopLocationUpdates();
+//        if (mGoogleApiClient.isConnected())
+//            mGoogleApiClient.disconnect();
+//        lStart = null;
+//        lEnd = null;
+//        distance = 0;
+//        return super.onUnbind(intent);
+//    }
 
     protected void startLocationUpdates() {
         LocationRequest locationRequest = new LocationRequest();

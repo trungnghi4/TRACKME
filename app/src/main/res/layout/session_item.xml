@@ -12,12 +12,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.gms.maps.MapView
-            android:id="@+id/mapView"
+        <!--<com.google.android.gms.maps.MapView-->
+            <!--android:id="@+id/mapView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="@dimen/item_map_height"-->
+            <!--app:liteMode="true"-->
+            <!--app:mapType="none" />-->
+        <ImageView
+            android:id="@+id/imageMapView"
+            android:background="@color/colorAccent"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/item_map_height"
-            app:liteMode="true"
-            app:mapType="none" />
+            android:layout_height="@dimen/item_map_height" />
 
         <TextView
             android:id="@+id/tvDistance"
@@ -27,7 +32,7 @@
 
             app:layout_constraintEnd_toStartOf="@+id/guideline1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/mapView"
+            app:layout_constraintTop_toBottomOf="@+id/imageMapView"
             tools:text="11 km" />
 
         <TextView
@@ -54,7 +59,7 @@
             app:layout_constraintBottom_toTopOf="@+id/tvAvgSpeedTitle"
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
             app:layout_constraintStart_toEndOf="@id/guideline1"
-            app:layout_constraintTop_toBottomOf="@+id/mapView"
+            app:layout_constraintTop_toBottomOf="@+id/imageMapView"
             tools:text="11 km/h" />
 
         <TextView
@@ -81,7 +86,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/guideline2"
-            app:layout_constraintTop_toBottomOf="@+id/mapView"
+            app:layout_constraintTop_toBottomOf="@+id/imageMapView"
             tools:text="10:10:20" />
 
 
