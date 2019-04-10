@@ -20,7 +20,7 @@
             <!--app:mapType="none" />-->
         <ImageView
             android:id="@+id/imageMapView"
-            android:background="@color/colorAccent"
+            android:src="@drawable/imagemain"
             android:layout_width="match_parent"
             android:layout_height="@dimen/item_map_height" />
 
@@ -37,12 +37,12 @@
 
         <TextView
             android:id="@+id/tvDistanceTitle"
+            android:text="@string/distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toStartOf="@+id/guideline1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvDistance" />
-
 
         <android.support.constraint.Guideline
             android:id="@+id/guideline1"

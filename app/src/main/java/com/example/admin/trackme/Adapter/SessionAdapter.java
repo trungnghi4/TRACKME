@@ -1,4 +1,4 @@
-package com.example.admin.trackme.views;
+package com.example.admin.trackme.Adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -16,12 +16,12 @@ import com.example.admin.trackme.model.Session;
 import java.util.List;
 
 
-public class AdapterSession extends RecyclerView.Adapter<AdapterSession.RecyclerViewHolder>{
+public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.RecyclerViewHolder>{
 
     private Context mContext;
     private List<Session> dataSession;
 
-    public AdapterSession(Context mContext, List<Session> dataSession) {
+    public SessionAdapter(Context mContext, List<Session> dataSession) {
         this.mContext = mContext;
         this.dataSession = dataSession;
     }
@@ -36,12 +36,13 @@ public class AdapterSession extends RecyclerView.Adapter<AdapterSession.Recycler
     @Override
     public void onBindViewHolder(final RecyclerViewHolder holder, int position) {
         Session session = dataSession.get(position);
-
-        holder.distance.setText(session.getDistance());
-        holder.avgSpeed.setText(session.getAverageSpeed());
+        String distance = session.getDistance()+ " km";
+        holder.distance.setText(distance);
+        String avgSpeed = session.getAverageSpeed()+ " km_h";
+        holder.avgSpeed.setText(avgSpeed);
         holder.time.setText((session.getTime()));
-        Bitmap bmMap = BitmapFactory.decodeByteArray(session.getImage(),0,session.getImage().length);
-        holder.imageMapView.setImageBitmap(bmMap);
+//        Bitmap bmMap = BitmapFactory.decodeByteArray(session.getImage(),0,session.getImage().length);
+//        holder.imageMapView.setImageBitmap(bmMap);
     }
 
     @Override

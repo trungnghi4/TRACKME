@@ -21,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.admin.trackme.Data.DatabaseHandler;
 import com.example.admin.trackme.R;
@@ -34,6 +35,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -75,7 +77,8 @@ public class TrackingActivity extends AppCompatActivity implements
     List<Float> listSpeed = new ArrayList<Float>();
     float speed;
     static long sum_time;
-
+    static byte[] image_temp;
+    Bitmap mBitmap;
     boolean isRunning = true;
     boolean isRecording = true;
 
@@ -89,7 +92,7 @@ public class TrackingActivity extends AppCompatActivity implements
 
         mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
         mapFrag.getMapAsync(this);
-
+        mapFrag.getView();
         btnReplay = (ImageView) findViewById(R.id.btnReplay);
         btnStop = (ImageView) findViewById(R.id.btnStop);
         btnPause = (ImageView) findViewById(R.id.btnPause);
@@ -159,31 +162,7 @@ public class TrackingActivity extends AppCompatActivity implements
         }
     }
 
-    public Session createSession(){
-        Session tempSS = new Session();
-        String distance = tvDistance.getText().toString();
-        String avgSpeed = AverageSpeed(listSpeed).toString();
-        String time = tvTime.getText().toString();
-        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
-            @Override
-            public void onSnapshotReady(Bitmap bitmap) {
-                ImageView snapshotView = (ImageView) findViewById(R.id.imageTemp);
-                snapshotView.setImageBitmap(bitmap);
-                Bitmap bmMap = ((BitmapDrawable)snapshotView.getDrawable()).getBitmap();
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                Session session1 = new Session();
-                session1.setImage(stream.toByteArray());
-                //get Image
-                //ByteArrayInputStream bis = new ByteArrayInputStream(imageInByte);
-            }
-        };
 
-        mGoogleMap.snapshot(callback);
-
-        Session session = new Session(distance,avgSpeed,time,tempSS.getImage());
-        return session;
-    }
 
     public static void setDate(TextView receiver,Date date,Date now) {
         if (date != null) {
@@ -196,7 +175,7 @@ public class TrackingActivity extends AppCompatActivity implements
                 String format_time = "%02d:%02d:%02d";
                 Object[] objTime = new Object[]{hours, minutes, seconds};
                 String time = String.format(format_time, Arrays.copyOf(objTime, objTime.length));
-                receiver.setText((CharSequence)time);
+                receiver.setText(time);
             } catch (Throwable e) {
             }
 
@@ -300,6 +279,12 @@ public class TrackingActivity extends AppCompatActivity implements
                     Looper.myLooper());
             mGoogleMap.setMyLocationEnabled(true);
         }
+        mGoogleMap.setOnMapLoadedCallback (new GoogleMap.OnMapLoadedCallback () {
+            @Override
+            public void onMapLoaded() {
+                takeSnapshot();
+            }
+        });
     }
 
     @Override
@@ -354,11 +339,11 @@ public class TrackingActivity extends AppCompatActivity implements
     }
     //The live feed of Distance and Speed are being set in the method below .
     private void updateUI() {
-            String stringDistance = String.format ("%.3f", distance);
+            String stringDistance = String.format ("%.3f", distance) + " km";
             tvDistance.setText(stringDistance);
 //            avgSpeed = AverageSpeed(arrayListSpeed);
 //            speed = (float) (distance/(sum_time));
-            String stringAvgSpeed = String.format ("%.2f", speed);
+            String stringAvgSpeed = String.format ("%.2f", speed) + " km_h";
             tvSpeed.setText(stringAvgSpeed);
 //
 
@@ -498,4 +483,61 @@ public class TrackingActivity extends AppCompatActivity implements
         }
     }
 
+    public Session createSession(){
+        String distance = tvDistance.getText().toString();
+        String avgSpeed = AverageSpeed(listSpeed).toString();
+        String time = tvTime.getText().toString();
+//        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+//            @Override
+//            public void onSnapshotReady(Bitmap bitmap) {
+//                ImageView snapshotView = (ImageView) findViewById(R.id.imageTemp);
+//                snapshotView.setImageBitmap(bitmap);
+//                Bitmap bmMap = ((BitmapDrawable)snapshotView.getDrawable()).getBitmap();
+//                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+//                Session session1 = new Session();
+//                session1.setImage(stream.toByteArray());
+//                //get Image
+//                //ByteArrayInputStream bis = new ByteArrayInputStream(imageInByte);
+//            }
+//        };
+//
+//        mGoogleMap.snapshot(callback);
+        takeSnapshot();
+        byte [] image = image_temp;
+        Session session = new Session(distance,avgSpeed,time,image);
+        return session;
+    }
+    private void takeSnapshot() {
+        if (mGoogleMap == null) {
+            return;
+        }
+        final ImageView snapshotView = (ImageView) findViewById(R.id.imageTemp);
+        MapView mapView = (MapView) findViewById(R.id.mapView);
+        mapView.buildDrawingCache();
+        mBitmap = mapView.getDrawingCache();
+        mapView.destroyDrawingCache();
+            final GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+                @Override
+                public void onSnapshotReady(Bitmap snapshot) {
+                    mBitmap = snapshot;
+                    try {
+                        //snapshotView.setImageBitmap(snapshot);
+                        //Bitmap bmMap = ((BitmapDrawable)snapshotView.getDrawable()).getBitmap();
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                        image_temp = stream.toByteArray();
+                        Toast.makeText(TrackingActivity.this, "Capture", Toast.LENGTH_SHORT).show();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(TrackingActivity.this, "Not Capture", Toast.LENGTH_SHORT).show();
+                    }
+                    // Callback is called from the main thread, so we can modify the ImageView safely.
+
+                }
+            };
+            mGoogleMap.snapshot(callback, mBitmap);
+
+    }
 }

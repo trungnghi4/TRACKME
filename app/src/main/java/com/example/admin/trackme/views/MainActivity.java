@@ -1,22 +1,30 @@
 package com.example.admin.trackme.views;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.admin.trackme.Adapter.SessionAdapter;
+import com.example.admin.trackme.Data.DatabaseHandler;
+import com.example.admin.trackme.model.Session;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -25,14 +33,18 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import com.example.admin.trackme.R;
 
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener{
-
+    RecyclerView recyclerView;
+    FloatingActionButton fab;
     private Location location;
     private TextView locationTv;
+    private ProgressBar progressBar;
     private GoogleApiClient googleApiClient;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private LocationRequest locationRequest;
@@ -44,14 +56,21 @@ public class MainActivity extends AppCompatActivity
     // integer for permissions results request
     private static final int ALL_PERMISSIONS_RESULT = 1011;
 
+    private List<Session> listSession = new ArrayList<>();
+    private SessionAdapter mAdapter;
+    Context mContext;
+    private DatabaseHandler db;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //locationTv = findViewById(R.id.location);
-
-        FloatingActionButton fab = findViewById(R.id.fabRecord);
+        mContext = this;
+        progressBar = (ProgressBar) findViewById(R.id.progressLoading);
+        db = new DatabaseHandler(mContext);
+        connectView();
+        fab = findViewById(R.id.fabRecord);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,6 +79,9 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
+        //Hide and show FloatingActionButton when scroll
+        showHideWhenScroll();
         // we add permissions we need to request location of the users
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -78,6 +100,50 @@ public class MainActivity extends AppCompatActivity
                 addApi(LocationServices.API).
                 addConnectionCallbacks(this).
                 addOnConnectionFailedListener(this).build();
+    }
+    private void connectView() {
+
+        recyclerView = (RecyclerView) findViewById(R.id.rvSession);
+
+        // If the size of views will not change as the data changes.
+        recyclerView.setHasFixedSize(true);
+
+        // Setting the LayoutManager.
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        // Setting the adapter.
+        mAdapter = new SessionAdapter(mContext, listSession);
+        recyclerView.setAdapter(mAdapter);
+        progressBar.setVisibility(View.GONE);
+    }
+
+    //
+    private void showHideWhenScroll() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            if (dy > 0 && fab.getVisibility() == View.VISIBLE) {
+                fab.hide();
+            } else if (dy < 0 && fab.getVisibility() != View.VISIBLE) {
+                fab.show();
+            }
+        }
+        });
+    }
+    private void updateListNote() {
+        // clear old list
+        listSession.clear();
+        // add all notes from database, reverse list
+        List<Session> sessions = db.getAllContacts();
+
+        // reverse list
+        for (int i = sessions.size() - 1; i >= 0; i--) {
+            listSession.add(sessions.get(i));
+        }
+
+        mAdapter.notifyDataSetChanged();
     }
 
     private ArrayList<String> permissionsToRequest(ArrayList<String> wantedPermissions) {
@@ -112,7 +178,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-
+        updateListNote();
 //        if (!checkPlayServices()) {
 //            locationTv.setText("You need to install Google Play Services to use the App properly");
 //        }
