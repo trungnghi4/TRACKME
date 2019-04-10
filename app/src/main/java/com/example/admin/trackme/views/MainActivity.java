@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -22,8 +21,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.admin.trackme.Adapter.SessionAdapter;
-import com.example.admin.trackme.Data.DatabaseHandler;
+import com.example.admin.trackme.adapter.SessionAdapter;
+import com.example.admin.trackme.data.DatabaseHandler;
 import com.example.admin.trackme.model.Session;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;

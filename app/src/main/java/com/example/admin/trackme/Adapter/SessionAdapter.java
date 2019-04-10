@@ -1,8 +1,6 @@
-package com.example.admin.trackme.Adapter;
+package com.example.admin.trackme.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,7 +36,7 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.Recycler
         Session session = dataSession.get(position);
         String distance = session.getDistance()+ " km";
         holder.distance.setText(distance);
-        String avgSpeed = session.getAverageSpeed()+ " km_h";
+        String avgSpeed = session.getAverageSpeed()+ " km/h";
         holder.avgSpeed.setText(avgSpeed);
         holder.time.setText((session.getTime()));
 //        Bitmap bmMap = BitmapFactory.decodeByteArray(session.getImage(),0,session.getImage().length);

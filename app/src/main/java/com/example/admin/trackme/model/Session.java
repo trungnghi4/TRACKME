@@ -29,11 +29,14 @@ public class Session {
     public Session(String distance,String averageSpeed,String time, byte[] image) {
         this.distance = distance;
         this.averageSpeed = averageSpeed;
-//        this.startTime = startTime;
-////        this.endTime = endTime;
         this.time = time;
         this.image = image;
 
+    }
+    public Session(String distance,String averageSpeed,String time) {
+        this.distance = distance;
+        this.averageSpeed = averageSpeed;
+        this.time = time;
     }
 
     public byte[] getImage() {

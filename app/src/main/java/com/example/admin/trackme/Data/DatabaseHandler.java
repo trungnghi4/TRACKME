@@ -1,4 +1,4 @@
-package com.example.admin.trackme.Data;
+package com.example.admin.trackme.data;
 
 import android.content.ContentValues;
 import android.content.Context;

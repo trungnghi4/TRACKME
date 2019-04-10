@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Handler;
@@ -23,7 +22,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.admin.trackme.Data.DatabaseHandler;
+import com.example.admin.trackme.data.DatabaseHandler;
 import com.example.admin.trackme.R;
 import com.example.admin.trackme.model.Session;
 import com.google.android.gms.common.ConnectionResult;
@@ -64,6 +63,8 @@ public class TrackingActivity extends AppCompatActivity implements
     SupportMapFragment mapFrag;
     LocationRequest mLocationRequest;
     Location mLastLocation;
+    Location mStartLocation;
+
     Marker mCurrLocationMarker;
     FusedLocationProviderClient mFusedLocationClient;
 
@@ -81,7 +82,7 @@ public class TrackingActivity extends AppCompatActivity implements
     Bitmap mBitmap;
     boolean isRunning = true;
     boolean isRecording = true;
-
+    boolean isStart_Location = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,12 +107,8 @@ public class TrackingActivity extends AppCompatActivity implements
             startTime = new Date();
             this.runTimer();
         }
-        //Count Time
-        //startTime = SystemClock.uptimeMillis();
-        //myHandler.postDelayed(updateTimerMethod, 0);
+
         // Button
-
-
         btnReplay.setVisibility(View.GONE);
         btnStop.setVisibility(View.GONE);
         btnPause.setOnClickListener(new View.OnClickListener() {
@@ -163,7 +160,7 @@ public class TrackingActivity extends AppCompatActivity implements
     }
 
 
-
+    // Calculate and format time
     public static void setDate(TextView receiver,Date date,Date now) {
         if (date != null) {
             try {
@@ -216,18 +213,8 @@ public class TrackingActivity extends AppCompatActivity implements
         }
 
     };
-    private Runnable replayTimerMethod = new Runnable() {
 
-        public void run() {
-            TextView tvTime = (TextView) findViewById(R.id.tvTime);
-            TrackingActivity.setDateRange(tvTime, TrackingActivity.this.startTime,TrackingActivity.this.endTime);
-//            if (isRunning) {
-            myHandler.post(replayTimerMethod);
-        }
-
-    };
     private void runTimer() {
-        //myHandler.post((Runnable)this.timerRunnable);
         myHandler.post(updateTimerMethod);
 
     }
@@ -279,12 +266,12 @@ public class TrackingActivity extends AppCompatActivity implements
                     Looper.myLooper());
             mGoogleMap.setMyLocationEnabled(true);
         }
-        mGoogleMap.setOnMapLoadedCallback (new GoogleMap.OnMapLoadedCallback () {
-            @Override
-            public void onMapLoaded() {
-                takeSnapshot();
-            }
-        });
+//        mGoogleMap.setOnMapLoadedCallback (new GoogleMap.OnMapLoadedCallback () {
+//            @Override
+//            public void onMapLoaded() {
+//                takeSnapshot();
+//            }
+//        });
     }
 
     @Override
@@ -327,11 +314,13 @@ public class TrackingActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         lastKnownLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         updateTrack();
-
-        Location temp = mLastLocation;     //save the old location
-        mLastLocation = location;          //get the new location
-        distance = (mLastLocation.distanceTo(temp)/ 1000.00);   //find the distance
-
+        if(isStart_Location) {
+            mStartLocation = location;
+            isStart_Location = false;
+        } else {
+            mLastLocation = location;          //get the new location
+            distance = (mLastLocation.distanceTo(mStartLocation) / 1000.00);   //find the distance
+        }
         //calculating the speed with getSpeed method it returns speed in m/s so we are converting it into kmph
         speed = location.getSpeed()*18/5;
         listSpeed.add(speed);
@@ -339,11 +328,11 @@ public class TrackingActivity extends AppCompatActivity implements
     }
     //The live feed of Distance and Speed are being set in the method below .
     private void updateUI() {
-            String stringDistance = String.format ("%.3f", distance) + " km";
+            String stringDistance = String.format ("%.3f", distance)+ " km";
             tvDistance.setText(stringDistance);
 //            avgSpeed = AverageSpeed(arrayListSpeed);
 //            speed = (float) (distance/(sum_time));
-            String stringAvgSpeed = String.format ("%.2f", speed) + " km_h";
+            String stringAvgSpeed = String.format ("%.2f", speed)+ " km/h";
             tvSpeed.setText(stringAvgSpeed);
 //
 
@@ -503,11 +492,12 @@ public class TrackingActivity extends AppCompatActivity implements
 //        };
 //
 //        mGoogleMap.snapshot(callback);
-        takeSnapshot();
-        byte [] image = image_temp;
-        Session session = new Session(distance,avgSpeed,time,image);
+//        takeSnapshot();
+//        byte [] image = image_temp;
+        Session session = new Session(distance,avgSpeed,time);
         return session;
     }
+    // Take Snapshot image google map
     private void takeSnapshot() {
         if (mGoogleMap == null) {
             return;
