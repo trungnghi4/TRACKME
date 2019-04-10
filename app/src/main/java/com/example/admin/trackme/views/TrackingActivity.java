@@ -44,6 +44,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -76,13 +77,12 @@ public class TrackingActivity extends AppCompatActivity implements
     private Handler myHandler = new Handler();
     double distance =0;
     List<Float> listSpeed = new ArrayList<Float>();
-    float speed;
+    float speed=0;
     static long sum_time;
     static byte[] image_temp;
     Bitmap mBitmap;
     boolean isRunning = true;
     boolean isRecording = true;
-    boolean isStart_Location = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -314,15 +314,17 @@ public class TrackingActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         lastKnownLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         updateTrack();
-        if(isStart_Location) {
-            mStartLocation = location;
-            isStart_Location = false;
-        } else {
-            mLastLocation = location;          //get the new location
-            distance = (mLastLocation.distanceTo(mStartLocation) / 1000.00);   //find the distance
-        }
+        Location temp = mLastLocation;
+        double startTime = System.currentTimeMillis();
+        mLastLocation = location;          //get the new location
+        distance += (mLastLocation.distanceTo(temp) / 1000.00);   //Caculate the distance
+        double currentTime= System.currentTimeMillis();
         //calculating the speed with getSpeed method it returns speed in m/s so we are converting it into kmph
-        speed = location.getSpeed()*18/5;
+        //speed = location.getSpeed()*18/5;
+        double time_temp = (currentTime-startTime)/ (long)1000 % (long)60;//time = seconds
+        double distance_temp = (mLastLocation.distanceTo(temp)/ 1000.00);//distance_temp=meter
+        speed = (float) (distance_temp/time_temp)*18/5;// convert km/h
+//        speed = Float.parseFloat(String.format("%.3f", speed));
         listSpeed.add(speed);
         updateUI();
     }
@@ -332,9 +334,14 @@ public class TrackingActivity extends AppCompatActivity implements
             tvDistance.setText(stringDistance);
 //            avgSpeed = AverageSpeed(arrayListSpeed);
 //            speed = (float) (distance/(sum_time));
-            String stringAvgSpeed = String.format ("%.2f", speed)+ " km/h";
-            tvSpeed.setText(stringAvgSpeed);
-//
+            String stringAvgSpeed = String.format ("%.3f", speed)+ " km/h";
+            if(stringAvgSpeed.equals("Infinity km/h")||stringAvgSpeed.equals("NaN km/h")){
+                tvSpeed.setText("0.00 km/h");
+            } else{
+                tvSpeed.setText(stringAvgSpeed);
+            }
+            Toast.makeText(this, stringAvgSpeed, Toast.LENGTH_SHORT).show();
+
 
     }
     private Float AverageSpeed(List<Float> listSpeed){
@@ -343,17 +350,32 @@ public class TrackingActivity extends AppCompatActivity implements
         return (sum/listSpeed.size());
     }
 
-
-//    @Override
-//    public boolean onUnbind(Intent intent) {
-//        stopLocationUpdates();
-//        if (mGoogleApiClient.isConnected())
-//            mGoogleApiClient.disconnect();
-//        lStart = null;
-//        lEnd = null;
-//        distance = 0;
-//        return super.onUnbind(intent);
-//    }
+    //Create session to add database
+    public Session createSession(){
+        String distance = tvDistance.getText().toString();
+        String avgSpeed = AverageSpeed(listSpeed).toString();
+        String time = tvTime.getText().toString();
+//        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+//            @Override
+//            public void onSnapshotReady(Bitmap bitmap) {
+//                ImageView snapshotView = (ImageView) findViewById(R.id.imageTemp);
+//                snapshotView.setImageBitmap(bitmap);
+//                Bitmap bmMap = ((BitmapDrawable)snapshotView.getDrawable()).getBitmap();
+//                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+//                Session session1 = new Session();
+//                session1.setImage(stream.toByteArray());
+//                //get Image
+//                //ByteArrayInputStream bis = new ByteArrayInputStream(imageInByte);
+//            }
+//        };
+//
+//        mGoogleMap.snapshot(callback);
+//        takeSnapshot();
+//        byte [] image = image_temp;
+        Session session = new Session(distance,avgSpeed,time);
+        return session;
+    }
 
     protected void startLocationUpdates() {
         LocationRequest locationRequest = new LocationRequest();
@@ -472,31 +494,7 @@ public class TrackingActivity extends AppCompatActivity implements
         }
     }
 
-    public Session createSession(){
-        String distance = tvDistance.getText().toString();
-        String avgSpeed = AverageSpeed(listSpeed).toString();
-        String time = tvTime.getText().toString();
-//        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
-//            @Override
-//            public void onSnapshotReady(Bitmap bitmap) {
-//                ImageView snapshotView = (ImageView) findViewById(R.id.imageTemp);
-//                snapshotView.setImageBitmap(bitmap);
-//                Bitmap bmMap = ((BitmapDrawable)snapshotView.getDrawable()).getBitmap();
-//                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-//                Session session1 = new Session();
-//                session1.setImage(stream.toByteArray());
-//                //get Image
-//                //ByteArrayInputStream bis = new ByteArrayInputStream(imageInByte);
-//            }
-//        };
-//
-//        mGoogleMap.snapshot(callback);
-//        takeSnapshot();
-//        byte [] image = image_temp;
-        Session session = new Session(distance,avgSpeed,time);
-        return session;
-    }
+
     // Take Snapshot image google map
     private void takeSnapshot() {
         if (mGoogleMap == null) {
