@@ -34,7 +34,7 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.Recycler
     @Override
     public void onBindViewHolder(final RecyclerViewHolder holder, int position) {
         Session session = dataSession.get(position);
-        String distance = session.getDistance()+ " km";
+        String distance = session.getDistance();
         holder.distance.setText(distance);
         String avgSpeed = session.getAverageSpeed()+ " km/h";
         holder.avgSpeed.setText(avgSpeed);

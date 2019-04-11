@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class TrackingActivity extends AppCompatActivity implements
         OnMapReadyCallback ,
@@ -71,7 +73,7 @@ public class TrackingActivity extends AppCompatActivity implements
 
     ImageView btnPause,btnStop,btnReplay;
     TextView tvTime,tvDistance,tvSpeed;
-
+    private Date startTimeSpeed = new Date();
     private Date startTime;
     private Date endTime;
     private Handler myHandler = new Handler();
@@ -81,7 +83,7 @@ public class TrackingActivity extends AppCompatActivity implements
     static long sum_time;
     static byte[] image_temp;
     Bitmap mBitmap;
-    boolean isRunning = true;
+    boolean isRunning = false;
     boolean isRecording = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +124,6 @@ public class TrackingActivity extends AppCompatActivity implements
                 myHandler.removeCallbacks(updateTimerMethod);
                 endTime = new Date();
                 isRecording = false;
-                isRunning = false;
 
             }
         });
@@ -134,7 +135,6 @@ public class TrackingActivity extends AppCompatActivity implements
                 btnPause.setVisibility(View.VISIBLE);
                 //myHandler.post(replayTimerMethod);
                 myHandler.post(updateTimerMethod);
-                isRunning = true;
             }
         });
         btnStop.setOnClickListener(new View.OnClickListener() {
@@ -206,7 +206,7 @@ public class TrackingActivity extends AppCompatActivity implements
             else
             {
                 Date now = endTime;
-                long temp = -(now.getTime()-endTime.getTime());
+//                long temp = -(now.getTime()-endTime.getTime());
                 TrackingActivity.setDate(tvTime, TrackingActivity.this.startTime,now);
                 myHandler.postDelayed(updateTimerMethod, 0);
             }
@@ -314,33 +314,38 @@ public class TrackingActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         lastKnownLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         updateTrack();
+        if(!isRunning) {
+            startTimeSpeed = new Date();
+            isRunning = true;
+        }
         Location temp = mLastLocation;
-        double startTime = System.currentTimeMillis();
         mLastLocation = location;          //get the new location
+        Date currentTime= new Date();
+
         distance += (mLastLocation.distanceTo(temp) / 1000.00);   //Caculate the distance
-        double currentTime= System.currentTimeMillis();
-        //calculating the speed with getSpeed method it returns speed in m/s so we are converting it into kmph
-        //speed = location.getSpeed()*18/5;
-        double time_temp = (currentTime-startTime)/ (long)1000 % (long)60;//time = seconds
-        double distance_temp = (mLastLocation.distanceTo(temp)/ 1000.00);//distance_temp=meter
-        speed = (float) (distance_temp/time_temp)*18/5;// convert km/h
-//        speed = Float.parseFloat(String.format("%.3f", speed));
-        listSpeed.add(speed);
+
+
+        double time_temp = ((currentTime.getTime()-startTimeSpeed.getTime())/ (long)1000 % (long)60) ;//time = seconds
+        if(time_temp != 0) {
+            speed = (float) (((distance * 1000) / time_temp) * 18 / 5);// convert km/h
+
+//        speed = location.getSpeed()*18/5; returns the value 0
+            listSpeed.add(speed);
+        }
+
         updateUI();
     }
     //The live feed of Distance and Speed are being set in the method below .
     private void updateUI() {
-            String stringDistance = String.format ("%.3f", distance)+ " km";
+            String stringDistance = String.format (Locale.US,"%.3f", distance)+ " km";
             tvDistance.setText(stringDistance);
-//            avgSpeed = AverageSpeed(arrayListSpeed);
-//            speed = (float) (distance/(sum_time));
-            String stringAvgSpeed = String.format ("%.3f", speed)+ " km/h";
-            if(stringAvgSpeed.equals("Infinity km/h")||stringAvgSpeed.equals("NaN km/h")){
-                tvSpeed.setText("0.00 km/h");
-            } else{
-                tvSpeed.setText(stringAvgSpeed);
-            }
-            Toast.makeText(this, stringAvgSpeed, Toast.LENGTH_SHORT).show();
+
+            String stringSpeed = String.format ("%.2f", speed)+ " km/h";
+//            if(stringSpeed.equals("Infinity km/h")||stringSpeed.equals("NaN km/h")){
+//                tvSpeed.setText("0.000 km/h");
+//            } else{
+                tvSpeed.setText(stringSpeed);
+//            }
 
 
     }
@@ -353,7 +358,8 @@ public class TrackingActivity extends AppCompatActivity implements
     //Create session to add database
     public Session createSession(){
         String distance = tvDistance.getText().toString();
-        String avgSpeed = AverageSpeed(listSpeed).toString();
+        String avgSpeed = String.format (Locale.US,"%.2f", AverageSpeed(listSpeed));
+
         String time = tvTime.getText().toString();
 //        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
 //            @Override
